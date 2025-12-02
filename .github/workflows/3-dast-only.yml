@@ -35,17 +35,11 @@ jobs:
           pip install -r requirements.txt
       
       # Step 4: Start the application in background
-      - name: Start application
+      - name: Start Flask application
         run: |
           python app.py &
-          sleep 15  # Increase from 10 to 15
-
-      - name: Wait for application
-        run: |
-          for i in {1..30}; do
-          curl -f http://localhost:5000 && break
-          sleep 1
-          done
+          sleep 10  # Wait for app to start
+          echo "Application started on http://localhost:5000"
       
       # Step 5: Verify application is running
       - name: Verify application is running
