@@ -45,6 +45,7 @@ jobs:
           args: >
             --failOnCVSS 7
             --enableRetired
+            --requirementFile requirements.txt
       
       # Step 5: Upload Dependency-Check reports
       # ✅ Proper artifact naming (hyphens, not underscores)
