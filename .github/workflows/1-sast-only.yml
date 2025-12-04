@@ -59,11 +59,3 @@ jobs:
         with:
           name: codeql-sarif
           path: results/codeql-results.sarif
-      
-      # Step 7: Upload SARIF to GitHub Security
-      - name: Upload SARIF to GitHub Security
-        uses: github/codeql-action/upload-sarif@v3
-        if: always() && hashFiles('results/codeql-results.sarif') != ''
-        with:
-          sarif_file: results/codeql-results.sarif
-          category: sast
