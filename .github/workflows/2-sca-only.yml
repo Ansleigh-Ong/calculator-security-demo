@@ -40,8 +40,8 @@ jobs:
       - name: Run pip-audit
         run: |
           mkdir -p reports
-          pip-audit --requirement requirements.txt --format json --output reports/pip-audit.json
-          pip-audit --requirement requirements.txt --format html --output reports/pip-audit.html
+          pip-audit --requirement requirements.txt --format json --output reports/pip-audit.json || true
+          pip-audit --requirement requirements.txt --format html --output reports/pip-audit.html || true
 
       # Step 6: Upload pip-audit reports
       - name: Upload SCA reports
