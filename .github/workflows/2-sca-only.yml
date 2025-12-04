@@ -36,14 +36,42 @@ jobs:
       - name: Install pip-audit
         run: pip install pip-audit
 
-      # Step 5: Run pip-audit
+      # Step 5: Run pip-audit and generate JSON report
       - name: Run pip-audit
         run: |
           mkdir -p reports
           pip-audit --requirement requirements.txt --format json --output reports/pip-audit.json || true
-          pip-audit --requirement requirements.txt --format html --output reports/pip-audit.html || true
 
-      # Step 6: Upload pip-audit reports
+      # Step 6: Convert JSON report to HTML
+      - name: Convert pip-audit JSON to HTML
+        run: |
+          python - << 'EOF'
+          import json
+          from pathlib import Path
+
+          with open('reports/pip-audit.json') as f:
+              data = json.load(f)
+
+          html_content = "<html><body><h1>Vulnerabilities</h1><ul>"
+          for entry in data:
+              name = entry.get('name', 'unknown')
+              version = entry.get('version', 'unknown')
+              vulns = entry.get('vulns', [])
+              if not vulns:
+                  continue
+              html_content += f"<li><strong>{name} {version}</strong><ul>"
+              for v in vulns:
+                  cve = v.get('id', 'N/A')
+                  cvss = v.get('fix_version', 'N/A')
+                  desc = v.get('description', '')
+                  html_content += f"<li>{cve} | {cvss} | {desc}</li>"
+              html_content += "</ul></li>"
+          html_content += "</ul></body></html>"
+
+          Path('reports/pip-audit.html').write_text(html_content)
+          EOF
+
+      # Step 7: Upload reports
       - name: Upload SCA reports
         uses: actions/upload-artifact@v4
         if: always()
