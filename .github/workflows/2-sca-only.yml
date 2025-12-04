@@ -36,13 +36,13 @@ jobs:
       - name: Install pip-audit
         run: pip install pip-audit
 
-       # Step 5: Run pip-audit and generate JSON report
+      # Step 5: Run pip-audit and generate JSON report
       - name: Run pip-audit
         run: |
           mkdir -p reports
           pip-audit --requirement requirements.txt --format json --output reports/pip-audit.json || true
 
-      # Step 6: Convert JSON report to HTML
+      # Step 6: Convert pip-audit JSON to HTML
       - name: Convert pip-audit JSON to HTML
         run: |
           python - << 'EOF'
@@ -52,17 +52,24 @@ jobs:
           report_file = Path('reports/pip-audit.json')
           html_file = Path('reports/pip-audit.html')
 
+          data = []
           if report_file.exists():
-              with open(report_file) as f:
-                  try:
-                      data = json.load(f)
-                  except json.JSONDecodeError:
+              try:
+                  content = report_file.read_text().strip()
+                  if content:
+                      data = json.loads(content)
+                  else:
                       data = []
-          else:
-              data = []
+              except json.JSONDecodeError:
+                  data = []
 
           html_content = "<html><body><h1>Vulnerabilities</h1><ul>"
+          if isinstance(data, dict):
+              data = [data]  # wrap single dict in list
+
           for entry in data:
+              if not isinstance(entry, dict):
+                  continue
               name = entry.get('name', 'unknown')
               version = entry.get('version', 'unknown')
               vulns = entry.get('vulns', [])
@@ -70,6 +77,8 @@ jobs:
                   continue
               html_content += f"<li><strong>{name} {version}</strong><ul>"
               for v in vulns:
+                  if not isinstance(v, dict):
+                      continue
                   cve = v.get('id', 'N/A')
                   cvss = v.get('fix_version', 'N/A')
                   desc = v.get('description', '')
